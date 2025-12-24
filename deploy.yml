@@ -2,7 +2,7 @@
 - name: Push to Registry and Deploy
   hosts: localhost
   vars:
-    repo_name: "your-dockerhub-user/my-app"
+    repo_name: "omergldb/hi-python"
 
   tasks:
     - name: Log into DockerHub
