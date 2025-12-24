@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Change this to your actual DockerHub ID
-        DOCKER_USER = 'your-dockerhub-user'
+        DOCKER_USER = 'omergldb'
     }
 
     triggers {
