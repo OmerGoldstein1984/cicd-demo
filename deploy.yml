@@ -1,6 +1,7 @@
 ---
 - name: Push to Registry and Deploy
-  hosts: localhost
+  hosts: all  # Changed from localhost to 'all' to target your QA/Staging agents
+  become: true
   vars:
     repo_name: "omergldb/hi-python"
 
@@ -8,19 +9,18 @@
     - name: Log into DockerHub
       community.docker.docker_login:
         username: "{{ docker_user }}"
-        password: "{{ docker_pass }}"
+        password: "{{ docker_password }}"
 
-    - name: Push image to DockerHub
+    - name: Pull latest image
       community.docker.docker_image:
-        name: "{{ repo_name }}:{{ image_tag }}"
-        push: yes
-        source: local
+        name: "{{ repo_name }}"
+        source: pull
 
-    - name: Run the updated container
+    - name: Run Docker container
       community.docker.docker_container:
-        name: my-active-app
-        image: "{{ repo_name }}:{{ image_tag }}"
+        name: my-python-app
+        image: "{{ repo_name }}"
         state: started
-        recreate: yes
-        ports:
-          - "80:80"
+        restart_policy: always
+        published_ports:
+          - "80:5000"

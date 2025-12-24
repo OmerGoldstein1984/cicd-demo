@@ -1,62 +1,29 @@
 pipeline {
-    agent any 
-
+    agent any
     environment {
-        // Change this to your actual DockerHub ID
-        DOCKER_USER = 'omergldb'
+        DOCKER_CREDS_ID = 'dockerhub-creds'
     }
-
-    triggers {
-        cron('H 0 * * *') // Automated Midnight Regression
-    }
-
     stages {
-        stage('Pull from GitHub') {
+        stage('Checkout') {
             steps {
-                checkout scm 
+                git branch: 'main', url: 'https://github.com/omergldb-ops/cicd-demo.git'
             }
         }
-
-        stage('Build & Tag') {
+        stage('Deploy') {
             steps {
-                // Requirement 1: Build using app source and BUILD_ID tag
-                sh "docker build -t ${DOCKER_USER}/cicd-demo:${env.BUILD_ID} ."
-            }
-        }
-
-        stage('Push to DockerHub') {
-            steps {
-                // Requirement 2: Link to account and push for accessibility
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
-                                 passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    sh "docker login -u ${USER} -p ${PASS}"
-                    sh "docker push ${DOCKER_USER}/cicd-demo:${env.BUILD_ID}"
+                // This block connects Jenkins Credentials to Ansible Variables
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDS_ID}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    ansiblePlaybook(
+                        installation: 'ansible',
+                        playbook: 'deploy.yml',
+                        inventory: 'hosts.ini',
+                        extraVars: [
+                            docker_user: "${DOCKER_USERNAME}",
+                            docker_password: "${DOCKER_PASSWORD}"
+                        ]
+                    )
                 }
             }
-        }
-
-        stage('Deploy to QA') {
-            steps {
-                // Requirement 3: Utilize Ansible to deploy to Server 2
-                sh "ansible-playbook -i hosts.ini deploy.yml -e 'target_env=qa img_tag=${env.BUILD_ID}'"
-            }
-        }
-
-        stage('Deploy to Staging') {
-            steps {
-                // Deploy to Server 3 only if QA succeeded
-                sh "ansible-playbook -i hosts.ini deploy.yml -e 'target_env=staging img_tag=${env.BUILD_ID}'"
-            }
-        }
-    }
-
-    post {
-        success {
-            echo "Regression Passed! Tag: ${env.BUILD_ID}"
-            sh "docker rmi ${DOCKER_USER}/cicd-demo:${env.BUILD_ID}"
-        }
-        always {
-            cleanWs()
         }
     }
 }
