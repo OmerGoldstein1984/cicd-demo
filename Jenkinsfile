@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/OmerGoldstein1984/cicd-demo'
+                checkout scm
             }
         }
         stage('Deploy') {
