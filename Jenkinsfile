@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/omergldb-ops/cicd-demo.git'
+                git branch: 'main', url: 'https://github.com/OmerGoldstein1984/cicd-demo'
             }
         }
         stage('Deploy') {
