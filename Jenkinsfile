@@ -17,10 +17,10 @@ pipeline {
                         installation: 'ansible',
                         playbook: 'deploy.yml',
                         inventory: 'hosts.ini',
-                        extraVars: [
-                            docker_user: "${DOCKER_USERNAME}",
-                            docker_password: "${DOCKER_PASSWORD}"
-                        ]
+              extraVars: [
+    docker_user: "${DOCKER_USERNAME}",
+    docker_password: "${DOCKER_PASSWORD}" // Ansible will receive this as 'docker_password'
+]
                     )
                 }
             }
